@@ -1,0 +1,32 @@
+Listen 8140
+<VirtualHost *:8140>
+  ErrorLog /var/log/apache2/puppetmaster_error.log
+  LogLevel warn
+  SetEnvIf Remote_Addr "::1" dontlog
+  CustomLog /var/log/apache2/puppetmaster_access.log combined env=!dontlog
+
+  SSLEngine on
+  SSLCipherSuite SSLv2:-LOW:-EXPORT:RC4+RSA
+  SSLCertificateFile      /var/lib/puppet/ssl/certs/puppetmaster.pem
+  SSLCertificateKeyFile   /var/lib/puppet/ssl/private_keys/puppetmaster.pem
+  SSLCertificateChainFile /var/lib/puppet/ssl/ca/ca_crt.pem
+  SSLCACertificateFile    /var/lib/puppet/ssl/ca/ca_crt.pem
+  # CRL checking should be enabled; if you have problems with Apache complaining about the CRL, disable the next line
+  SSLCARevocationFile     /var/lib/puppet/ssl/ca/ca_crl.pem
+  SSLVerifyClient optional
+  SSLVerifyDepth  1
+  SSLOptions +StdEnvVars
+
+  # The following client headers allow the same configuration to work with Pound.
+  RequestHeader set X-SSL-Subject %{SSL_CLIENT_S_DN}e
+  RequestHeader set X-Client-DN %{SSL_CLIENT_S_DN}e
+  RequestHeader set X-Client-Verify %{SSL_CLIENT_VERIFY}e
+
+  DocumentRoot /var/www/puppetmaster/public/
+   <Directory /var/www/puppetmaster/public/>
+       Options None
+       AllowOverride None
+       Order allow,deny
+       allow from all
+   </Directory>
+</VirtualHost>
